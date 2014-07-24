@@ -13,6 +13,9 @@ option_parser = OptionParser.new do |opts|
   opts.on('-d DEVICES', '--devices') do |devices|
     options[:devices] = devices.split(',')
   end
+  opts.on('-c command', '--command') do |command|
+    options[:command] = command
+  end
 end
 
 option_parser.parse!
@@ -24,7 +27,8 @@ options[:user] = ask('Enter username: ') { |x| x.echo = true } if options[:user]
 
 password = ask('Enter password: ') { |x| x.echo = '*' }
 enable_password = ask('Enter enable password: ') { |x| x.echo = '*' }
-command = ask('Enter command: ') { |x| x.echo = true }
+
+options[:command] = ask('Enter command: ') { |x| x.echo = true } if options[:command].nil?
 
 options[:devices].each do |device|
   begin
@@ -53,7 +57,7 @@ options[:devices].each do |device|
       end
 
       r.expect(/^[a-zA-Z0-9-]+#/) do
-        w.printf "#{command}\n"
+        w.printf "#{options[:command]}\n"
         nil
       end
 
