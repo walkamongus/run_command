@@ -28,41 +28,41 @@ command = ask('Enter command: ') { |x| x.echo = true }
 
 options[:devices].each do |device|
   begin
-    PTY.spawn('ssh', device) do |ssh_out, ssh_in, _pid|
+    PTY.spawn('ssh', device) do |r, w, _pid|
 
       puts 'Logging in...'
 
-      ssh_out.expect(/user name:/i) do
-        ssh_in.print "#{options[:user]}\n"
+      r.expect(/user name:/i) do
+        w.print "#{options[:user]}\n"
       end
 
-      ssh_out.expect(/password:/i) do
-        ssh_in.printf "#{password}\n"
+      r.expect(/password:/i) do
+        w.printf "#{password}\n"
       end
 
       puts 'Gaining enable mode...'
 
-      ssh_out.expect(/^[a-zA-Z0-9-]+>/) do
-        ssh_in.printf "enable\n"
+      r.expect(/^[a-zA-Z0-9-]+>/) do
+        w.printf "enable\n"
         nil
       end
 
-      ssh_out.expect(/password:/i) do
-        ssh_in.printf "#{enable_password}\n"
+      r.expect(/password:/i) do
+        w.printf "#{enable_password}\n"
         nil
       end
 
-      ssh_out.expect(/^[a-zA-Z0-9-]+#/) do
-        ssh_in.printf "#{command}\n"
+      r.expect(/^[a-zA-Z0-9-]+#/) do
+        w.printf "#{command}\n"
         nil
       end
 
-      ssh_out.each do |line|
+      r.each do |line|
         puts line
-        ssh_out.expect(/(more: <space>|^[a-zA-Z0-9-]+#)/i) do |_r, match|
-          ssh_in.printf ' ' if match =~ /more: <space>/i
+        r.expect(/(more: <space>|^[a-zA-Z0-9-]+#)/i) do |_r, match|
+          w.printf ' ' if match =~ /more: <space>/i
         end
-        ssh_in.printf("exit\n")
+        w.printf("exit\n")
       end
     end
   rescue Errno::EIO
